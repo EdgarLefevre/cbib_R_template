@@ -1,6 +1,6 @@
-# Python CookieCutter
+# R CookieCutter
 
-CBiB's template for python projects.
+CBiB's template for R projects.
 
 
 ## Installation
@@ -51,16 +51,3 @@ git push -u origin master
 ## Architecture
 
 ![Folder structure](imgs/folder_structure.png)
-
-The template provides a classic python project architecture:
-- src: here are your sources
-- result_dir: Outputs files
-- docs: folder where the documentation will be generated
-- test: folder for test files
-- notebooks: folder for example notebooks
-
-With all those folders, come some config files:
- - .gitignore: config file for git, it excludes files from the git repo
- - README.md
- - LICENSE
-
