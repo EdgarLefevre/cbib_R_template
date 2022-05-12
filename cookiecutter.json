@@ -1,0 +1,15 @@
+{
+    "project_name": "My New Project",
+    "main_file": "main.r",
+    "src_dir": "R",
+    "results_dir": "results",
+    "github_username": "EdgarLefevre",
+    "author": "Edgar Lefevre",
+    "mail": "{{ cookiecutter.github_username }}@gmail.com",
+    "description": "My new project description (can be edited later)",
+    "year": "2022",
+    "tests": "y",
+    "doc": "y",
+    "rmarkdown": "y",
+    "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-') }}"
+}

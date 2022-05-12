@@ -1,0 +1,140 @@
+{% raw %}
+name: Workflow
+on: [push, pull_request]
+jobs:
+  Style:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install dependencies
+        run: install.packages("styler")
+        shell: Rscript {0}
+      - name: Enable styler cache
+        run: styler::cache_activate()
+        shell: Rscript {0}
+      - name: Determine cache location
+        id: styler-location
+        run: |
+          cat(
+            "##[set-output name=location;]",
+            styler::cache_info(format = "tabular")$location,
+            "\n",
+            sep = ""
+          )
+        shell: Rscript {0}
+      - name: Cache styler
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.styler-location.outputs.location }}
+          key: ${{ runner.os }}-styler-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-styler-
+            ${{ runner.os }}-
+      - name: Style
+        run: styler::style_dir(filetype = c(".r", ".R", ".Rmd", ".Rmarkdown", ".Rnw"))
+        shell: Rscript {0}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        name: autocommit
+        with:
+          commit_message: ":construction_worker: Code formatting"
+  Lint-project:
+    runs-on: ubuntu-latest
+    needs: [Style]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Pull modifications
+        run: git pull
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install lintr
+        run: install.packages("lintr")
+        shell: Rscript {0}
+      - name: Lint root directory
+        run: lintr::lint_dir()
+        shell: Rscript {0}
+  {% endraw %}
+  {% if cookiecutter.tests == 'y' %}
+  Tests:
+    {% raw %}
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    needs: [Lint-project]
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: macOS-latest,   r: 'release' }
+          - { os: windows-latest, r: 'release' }
+          - { os: ubuntu-latest,   r: 'release' }
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+      - uses: actions/checkout@v3
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+      - name: Run tests
+        run: testthat::test_dir(path = "tests/testthat/")
+        shell: Rscript {0}
+    {% endraw %}
+  {% endif %}
+  {% if cookiecutter.doc == 'y' %}
+  Document:
+    runs-on: ubuntu-latest
+    needs: [Tests]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Pull modifications
+        run: git pull
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::roxygen2
+          needs: roxygen2
+      - name: Document
+        run: roxygen2::roxygenise(clean=True)
+        shell: Rscript {0}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        name: autocommit
+        with:
+          commit_message: ":construction_worker: Rendering documentation."
+  {% endif %}
+  {% if cookiecutter.rmarkdown == 'y' %}
+  Render-rmarkdown:
+    runs-on: ubuntu-latest
+    needs: [Document]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Pull modifications
+        run: git pull
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-renv@v2
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+      - name: Render Rmarkdown files
+        run: |
+          rmarkdown::render("R/plot.Rmd", output_dir="html/")
+        shell: Rscript {0}
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        name: autocommit
+        with:
+          commit_message: ":construction_worker: Rendering Rmd files."
+  {% endif %}

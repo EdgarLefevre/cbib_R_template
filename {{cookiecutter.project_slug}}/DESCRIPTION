@@ -1,0 +1,14 @@
+{% set prenom = cookiecutter.author.split(' ')[0] %}
+{% set nom = cookiecutter.author.split(' ')[1] %}
+
+Package: {{cookiecutter.project_slug}}
+Title: {{cookiecutter.project_name}}
+Version: 0.1
+Authors@R:
+    person({{prenom}}, {{nom}}, , {{cookiecutter.mail}}, role = c("aut", "cre"))
+Description: {{cookiecutter.description}}
+License: `use_mit_license()`
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports:
