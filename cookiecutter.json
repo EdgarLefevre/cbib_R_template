@@ -11,5 +11,6 @@
     "tests": "y",
     "doc": "y",
     "rmarkdown": "y",
+    "example": "y",
     "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-') }}"
 }
