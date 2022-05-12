@@ -35,8 +35,7 @@ Next, the software will ask you some questions:
 - *doc* : if you want to generate documentation folder
 - *rmarkdown* : if you want to use rmarkdown
 - *project_slug* : the slug of the project (type enter, in the next versions you will not see this prompt)
-
-[//]: # (- *example* : if you want to generate an example for documentation and tests)
+- *example* : if you want to generate an example for documentation and tests.
 
 
 
